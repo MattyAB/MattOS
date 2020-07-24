@@ -2,6 +2,9 @@
 [bits 16]
     mov [BOOT_DRIVE], dl ; BIOS stores our boot drive in dl so let's save that for now.
 
+    mov bx, 0
+    mov es, bx ; initialize segment registers?
+
     mov bp, 0x8000 ; set stack base at 0x8000 so it won't overwrite us.
     mov sp, bp ; stack empty for now
 
@@ -10,7 +13,7 @@
 
     call new_line
 
-    mov dh, 2 ; read 16 sectors
+    mov dh, 0x10 ; read 16 sectors
 
     mov si, diskreadintro
     call print_string ; Puts the hex string for sector numbers into diskreadintro
@@ -27,11 +30,14 @@
     call print_string
     mov dx, [bx] ; Puts the hex string loaded in
     call print_hex
-    add bx, 2
-    mov dx, [bx] ; Puts the hex string loaded in
-    call print_hex
-    add bx, 2
-    mov dx, [bx] ; Puts the hex string loaded in
+    ;add bx, 2
+    ;mov dx, [bx] ; Puts the hex string loaded in
+    ;call print_hex
+    ;add bx, 2
+    ;mov dx, [bx] ; Puts the hex string loaded in
+    ;call print_hex
+
+    mov dx, gdt_start
     call print_hex
 
     jmp enter_protected_mode

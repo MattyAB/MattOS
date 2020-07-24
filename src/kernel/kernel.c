@@ -1,52 +1,66 @@
-#define VIDEO_MEM 0xb8000
-#define COL 80
-#define ROW 25
+#include "interrupt.h"
+#include "../driver/display.h"
+#include "../driver/bus.h"
 
-#define TEXT_COLOUR 0x0f
-
-void writeChar(char c, int col, int row);
-
-void screenShift()
-{
-    char * video_mem = (char *)VIDEO_MEM;
-
-    for(int i = 0; i < ROW - 1; i++)
-    {
-        for(int j = 0; j < COL; j++)
-        {
-            *(video_mem + 2 * (COL * i + j) + 1) = *(video_mem + 2 * (COL * (i + 1) + j) + 1);
-            *(video_mem + 2 * (COL * i + j) + 2) = *(video_mem + 2 * (COL * (i + 1) + j) + 2);
-        }
-    }
-    for(int j = 0; j < COL; j++)
-    {
-        *(video_mem + 2 * (COL * (ROW - 1) + j) + 1) = ' ';
-        *(video_mem + 2 * (COL * (ROW - 1) + j) + 2) = TEXT_COLOUR;
-    }
-}
+#define INITIAL_STACK 0x90000
 
 int main() 
 {
-    char * video_mem = (char *)VIDEO_MEM;
+    clearScreen();
+    setCursorPosition(0);
 
-    for(int i = 0; i < COL * ROW; i++)
-    {
-        *(video_mem + 2 * i + 1) = ' ';
-        *(video_mem + 2 * i + 2) = TEXT_COLOUR;
-    }
+    short gdtStart = *(short *)(INITIAL_STACK - 0x2);
+    short codeSeg = *(short *)(INITIAL_STACK - 0x4);
+    short dataSeg = *(short *)(INITIAL_STACK - 0x6);
 
-    *video_mem = '"';
+    printHexLine((void *)&gdtStart, 2);
+    printHexLine((void *)&codeSeg, 2);
+    printHexLine((void *)&dataSeg, 2);
 
-    //writeChar('>', 0, 0);
-    //writeChar('>', 1, 0);
-    //writeChar('>', 2, 0);
+    setupInterrupts(codeSeg);
+
+    printHexLine((void *)0x500, 16);
+
+    char string2[] = "Helloiwyaneee";
+    WriteLine(string2);
+
+    asm("int $1");
+
+    //printHexLine((void *)0x500, 16);
 
     return 0;
 }
 
-void writeChar(char c, int col, int row)
+/** TEST CURSOR
+ * 
+ * 
+ * 
+   for(int a = 0; a < ROW*COL; a++)
+    {
+        wait();
+        setCursorPosition(a * 2);
+        a = getCursorPosition() / 2;
+        printHex16(a * 2, 160);
+    }
+
+ ** PRINT KERNEL
+
+void wait()
 {
-    int location = VIDEO_MEM + (2 * (COL * row + col));
-    char *pointer = (char *)location;
-    *pointer = c;
+    for(int i = 0; i < 0xffffff / 2; i++);
 }
+
+void print_kernel(int offset)
+{
+    int kernel_loc = 0x9000;
+
+    for(int byteno = 0; byteno < 0x200; byteno++)
+    {
+        char hex = *(char *)(byteno + kernel_loc + offset);
+
+        printHex8(hex, 2 * (byteno));
+    }
+}
+
+ * 
+ * **/

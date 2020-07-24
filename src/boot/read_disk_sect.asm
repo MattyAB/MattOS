@@ -13,9 +13,9 @@ read_disk:
 
     int 0x13 ; carry out the interrupt
 
-    jc disk_error ; jumps if cf is set
-
     pop dx
+
+    jc disk_error ; jumps if cf is set
 
     cmp al, dh ; should have read DH
     jne disk_error
@@ -24,8 +24,25 @@ read_disk:
 
 
 disk_error:
+    cmp ah, 0x0c ; Is this a 'Media type not found' error?
+    jne disk_print_error
+
+    cmp al, 0
+    je disk_print_error
+
+    ; We've got to this point so have confirmed the media type not found error, and that SOME segments were read
+    ; So let's try to continue into our kernel!
+    ret
+
+disk_print_error:
     mov si, disk_error_msg
     call print_string
+
+    mov al, 0x0
+    mov dx, ax
+    call print_hex
+
+    jmp $
 
 disk_error_msg:
     db 'Disk read error!', 0

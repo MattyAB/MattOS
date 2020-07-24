@@ -1,5 +1,5 @@
 VIDEO_MEM equ 0xb8000
-WHITE_ON_BLACK equ 0b00001111
+;WHITE_ON_BLACK equ 0b00001111
 
 ; prints the null terminated string, starting at location SI, using video memory editing
 print_string_vmem:

@@ -31,11 +31,14 @@ init_pm:
     mov ebx, protmodetext
     call print_string_pm
 
-    mov ah, 0x0f
-    mov al, 'G'
-    mov edx, 0xb8000
-    mov [edx], ax
-
+    ; Store code and data gdt location
+    mov ax, gdt_start
+    push ax
+    mov ax, CODE_SEG
+    push ax
+    mov ax, DATA_SEG
+    push ax
+    
     call 0x9000 ; Go to kernel_entry program that runs our 'main' function.
 
     jmp $
