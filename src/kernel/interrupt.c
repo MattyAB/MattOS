@@ -1,6 +1,25 @@
 #include "interrupt.h"
 
 #include "../driver/display.h"
+#include "../driver/bus.h"
+
+short picGetIRQ(int ocw)
+{
+    port_byte_out(PIC1_COMMAND, ocw);
+    port_byte_out(PIC2_COMMAND, ocw);
+
+    return (port_byte_in(PIC2_COMMAND) << 8) | port_byte_in(PIC1_COMMAND);
+}
+
+short picGetIRR()
+{
+    return picGetIRQ(PIC_READ_IRR);
+}
+
+short picGetISR()
+{
+    return picGetIRQ(PIC_READ_ISR);
+}
 
 void print_interrupt(char interruptno)
 {
@@ -12,6 +31,10 @@ void print_interrupt(char interruptno)
         case 9:
             // Handle keyboard interrupt
             Write("Keyboard interrupt recieved!");
+            printHex16(picGetIRR(), 560);
+            //port_byte_out(PIC1_COMMAND, PIC_EOI);
+            //port_byte_out(PIC2_COMMAND, PIC_EOI);
+            //printHex16(port_short_in(PIC1_COMMAND), 560);
             break;
         default:
             Write("Interrupt recieved: ");
