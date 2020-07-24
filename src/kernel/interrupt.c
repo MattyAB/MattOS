@@ -4,9 +4,21 @@
 
 void print_interrupt(char interruptno)
 {
-    Write("Interrupt recieved: ");
-    printHex8(interruptno, getCursorPosition());
-    WriteLine("");
+    switch(interruptno)
+    {
+        case 8:
+            // This is clock interrupt
+            break;
+        case 9:
+            // Handle keyboard interrupt
+            Write("Keyboard interrupt recieved!");
+            break;
+        default:
+            Write("Interrupt recieved: ");
+            printHex8(interruptno, getCursorPosition());
+            WriteLine("");
+            break;
+    }
 }
 
 // *** Interrupt Descriptor Table
@@ -34,9 +46,6 @@ void setupInterrupts(short codeOffset)
         WriteLine("APIC Present!");
     else
         WriteLine("No APIC!");
-    
-
-
 
     struct IDTDescr *IDT_Pointer = (struct IDTDescr *)IDT_LOCATION;
     struct IDTDescr *IDT_Initial_Pointer = IDT_Pointer;
@@ -66,6 +75,8 @@ void setupInterrupts(short codeOffset)
     printHexLine(&idtr, 6);
 
     load_idt(&idtr);
+
+    asm("sti"); // Begin interrupts
 }
 
 struct IDTDescr GenIDTDescr(int offset, short selector, char type_attr)
