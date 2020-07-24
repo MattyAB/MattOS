@@ -20,6 +20,24 @@ void setupInterrupts(short codeOffset)
 {
     WriteLine("Setting up interrupts...");
 
+    int cpuidval = 0;
+
+    asm ("mov %1, %%eax\n\t"
+        "cpuid\n\t"
+        "mov %%edx, %0"
+        : "=r" (cpuidval) 
+        : "r" (0x01));
+
+    cpuidval = cpuidval & (1 << 9);
+
+    if(cpuidval == 1 << 9)
+        WriteLine("APIC Present!");
+    else
+        WriteLine("No APIC!");
+    
+
+
+
     struct IDTDescr *IDT_Pointer = (struct IDTDescr *)IDT_LOCATION;
     struct IDTDescr *IDT_Initial_Pointer = IDT_Pointer;
 
